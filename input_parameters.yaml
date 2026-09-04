@@ -10,10 +10,11 @@ left_state:
   P: 1
 
 right_state: 
-  rho: 1
-  P: 1
+  rho: 0.125
+  P: 0.1
 
 gamma: 1.4                    # specific heat ratio of the fluid
 u_initial: 0                  # initial velocity of the flowfield
 final_time: 0.2               # final time
 CFL: 0.5                      # CFL condition value
+animation_time: 5            # in seconds

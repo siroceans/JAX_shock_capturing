@@ -68,8 +68,3 @@ def shockTubeSolver(L, x_d, n_x, rho_right, rho_left, p_right, p_left, gamma, u_
         if (t + dt) > t_f: 
             dt = t_f - t
     return jnp.stack(u_states), jnp.stack(rho_states), jnp.stack(P_states)
-
-# testing code!
-
-u, rho, p = shockTubeSolver(1, 0.5, 100, 0.125, 1, 0.1, 1, 1.4, 0, 0.2)
-plotting.animate_states(u, 1, "U", 5)

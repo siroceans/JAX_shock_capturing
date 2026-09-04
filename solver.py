@@ -30,7 +30,7 @@ def initializeField(rho_right, rho_left, P_right, P_left, x_discontinuity, n_x, 
     return U, c, dx
 
 
-def shockTubeSolver(L, x_d, n_x, rho_right, rho_left, p_right, p_left, gamma, u_0, t_f):
+def shockTubeSolver(L, x_d, n_x, rho_right, rho_left, p_right, p_left, gamma, u_0, t_f, CFL):
     # initialize field
     U, c, dx = initializeField(rho_right,rho_left, p_right, p_left, x_d, n_x, gamma, L, u_0)
 

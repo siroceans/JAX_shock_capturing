@@ -37,5 +37,10 @@ def steger_warming(U, gamma):
     F_p = F_p.at[:, 1].set((2 * (gamma-1) * u**2 + (u+a)**2) * factor_p)
     F_p = F_p.at[:, 2].set(((gamma-1) * u**3 + 1/2 * (u+a)**3 + 1/2 * a**2 * 
                            (3-gamma)/(gamma-1) * (u+a)) * factor_p)
-    return F_p, F_n
+
+    # evaluating fluxes at cell faces (excluding the boudnaries)
+    F_p_h = F_p[1:-1, :] + F_n[2:, :]   #F_i+1/2
+    F_n_h = F_p[0:-2, :] + F_n[1:-1, :] #F_i-1/2
+
+    return F_p_h, F_n_h
 

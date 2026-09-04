@@ -39,7 +39,6 @@ def shockTubeSolver(L, x_d, n_x, rho_right, rho_left, p_right, p_left, gamma, u_
     #-------------------------
 
     # using CFL to calculate dt and initializing time loop
-    CFL = 0.5
     dt = CFL*  dx / jnp.max(c)
     t = 0
 

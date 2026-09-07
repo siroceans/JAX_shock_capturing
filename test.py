@@ -8,6 +8,5 @@ if __name__ == "__main__":
     u, rho, p = shockTubeSolver(**solver_parameters)
 
     # plotting last state or animating all
-    #plotting.animate_states(p, solver_parameters['L'], "P", animation_time)
-    plotting.plot_final_state(u, solver_parameters['L'], "U")
-    print(u)   
+    plotting.animate_states(p, solver_parameters['L'], "P", animation_time)
+    #plotting.plot_final_state(u, solver_parameters['L'], "U")

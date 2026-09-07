@@ -26,6 +26,8 @@ def get_parameters():
         flux_solver = steger_warming
     elif config['flux_solver'] == "hll": 
         flux_solver = hll
+    else: 
+        raise ValueError("Flux Solver selected is not supported.")
 
     animation_time = config['animation_time']
 

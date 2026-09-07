@@ -60,8 +60,8 @@ def direct_wave_speed(U, gamma):
     S_R = jnp.zeros((U.shape[0] - 1, 1))
 
     # filling in values.... 
-    S_L.at[:, 1].set(jnp.minimum(u_l - a_l, u_r - a_r))
-    S_R.at[:, 1].set(jnp.maximum(u_l + a_l, u_r + a_r))
+    S_L = S_L.at[:, 0].set(jnp.minimum(u_l - a_l, u_r - a_r))
+    S_R = S_R.at[:, 0].set(jnp.maximum(u_l + a_l, u_r + a_r))
     return S_L, S_R
 
 def hll(U, gamma):

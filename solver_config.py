@@ -19,6 +19,8 @@ def get_parameters():
     u_0 = config['u_initial']
     t_f = config['final_time']
     CFL = config['CFL']
+    flux_solver = config['flux_solver']
+
     animation_time = config['animation_time']
 
     not_solver_parameters = ['not_solver_parameters', 'animation_time']

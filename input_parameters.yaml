@@ -3,7 +3,7 @@
 geometry:
   L: 1                        # Length of the tube
   discontinuity_x: 0.5        # Location of discontinuity
-  cell_number: 100            # Number of cells
+  cell_number: 500            # Number of cells
 
 left_state: 
   rho: 1
@@ -17,4 +17,8 @@ gamma: 1.4                    # specific heat ratio of the fluid
 u_initial: 0                  # initial velocity of the flowfield
 final_time: 0.2               # final time
 CFL: 0.5                      # CFL condition value
-animation_time: 5            # in seconds
+animation_time: 15            # in seconds
+
+# flux solver (uncomment whichever is wanted)
+#flux_solver: steger_warming
+flux_solver: hll

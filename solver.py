@@ -1,6 +1,6 @@
 import jax
 import jax.numpy as jnp
-from flux_functions import steger_warming, flow_properties
+from flux_functions import hll, steger_warming, flow_properties
 import plotting
 
 # setting default to double fpn
@@ -30,7 +30,8 @@ def initializeField(rho_right, rho_left, P_right, P_left, x_discontinuity, n_x, 
     return U, c, dx
 
 
-def shockTubeSolver(L, x_d, n_x, rho_right, rho_left, p_right, p_left, gamma, u_0, t_f, CFL):
+def shockTubeSolver(L, x_d, n_x, rho_right, rho_left, p_right, p_left, gamma, u_0, t_f, CFL,
+                     flux_solver):
     # initialize field
     U, c, dx = initializeField(rho_right,rho_left, p_right, p_left, x_d, n_x, gamma, L, u_0)
 
@@ -50,7 +51,7 @@ def shockTubeSolver(L, x_d, n_x, rho_right, rho_left, p_right, p_left, gamma, u_
 
     while t < t_f:
         t = t + dt
-        F_p_h, F_n_h = steger_warming(U, gamma)
+        F_p_h, F_n_h = flux_solver(U, gamma)
 
         # ignoring boundary cells... (look at BCs!!!)
         U = U.at[1:-1, :].set(U[1:-1, :] - dt/dx  * (F_p_h - F_n_h))

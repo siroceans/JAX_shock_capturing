@@ -6,5 +6,8 @@ if __name__ == "__main__":
     # Testing the solver
     solver_parameters, animation_time = get_parameters()
     u, rho, p = shockTubeSolver(**solver_parameters)
-    plotting.animate_states(p, solver_parameters['L'], "P", animation_time)
-    
+
+    # plotting last state or animating all
+    #plotting.animate_states(p, solver_parameters['L'], "P", animation_time)
+    plotting.plot_final_state(u, solver_parameters['L'], "U")
+    print(u)   

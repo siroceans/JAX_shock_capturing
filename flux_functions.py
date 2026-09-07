@@ -50,13 +50,18 @@ def direct_wave_speed(U, gamma):
 
     # ignoring boundary cells...
     _, u, a, _, _ = flow_properties(U, gamma)
-    u_l = u[0:-2]
-    u_r = u[2:]
-    a_l = a[0:-2]
-    a_r = a[2:]
+    u_l = u[0:-1]
+    u_r = u[1:]
+    a_l = a[0:-1]
+    a_r = a[1:]
 
-    S_L = jnp.minimum(u_l - a_l, u_r - a_r)
-    S_R = jnp.maximum(u_l + a_l, u_r + a_r)
+    # Initializing arrays to make sure they have right dimensions
+    S_L = jnp.zeros((U.shape[0] - 1, 1))
+    S_R = jnp.zeros((U.shape[0] - 1, 1))
+
+    # filling in values.... 
+    S_L.at[:, 1].set(jnp.minimum(u_l - a_l, u_r - a_r))
+    S_R.at[:, 1].set(jnp.maximum(u_l + a_l, u_r + a_r))
     return S_L, S_R
 
 def hll(U, gamma):
@@ -70,17 +75,23 @@ def hll(U, gamma):
     F = F.at[:, 1].set(rho * u**2 + (rho * a**2)/gamma)
     F = F.at[:, 2].set(rho * ((a**2 * u)/(gamma - 1) + 1/2 * u**3))
 
-    # computing wave speeds
+    # computing L and R values
     S_L, S_R = direct_wave_speed(U, gamma)
+    F_L = F[0:-1, :]
+    F_R = F[1:, :]
+    U_L = U[0:-1,:]
+    U_R = U[1:, :]
 
-    # creating F^(hll) arrays
-    F_hll = (S_R * F[0:-2, :] - S_L * F[2:, :] + S_L * S_R * (U[2:, :] - U[0:-2, :]))/(S_R - S_L)
+    # Computing F^hll flux
+    F_hll = (S_R * F_L - S_L * F_R + S_L * S_R * (U_R - U_L))/(S_R - S_L)
 
-    F_hll_interfaces = jnp.where(S_L >= 0, F[0:-2, :], 0)
-    F_hll_interfaces = jnp.where((S_L <= 0) and (S_R >= 0), F_hll, F_hll_interfaces)
-    F_hll_interfaces = jnp.where(S_R <= 0, F[2:, :],  F_hll_interfaces)
+    # Choosing value for interfaces
+    F_hll_i = jnp.where(S_L >= 0, F_L, 0)
+    F_hll_i = jnp.where((S_L <= 0) & (S_R >= 0), F_hll, F_hll_i)
+    F_hll_i = jnp.where(S_R <= 0, F_R, F_hll_i)
 
-    F_p_h = F_hll_interfaces[1:, :]
-    F_m_h = F_hll_interfaces[0:-1, :]
+    F_p_h = F_hll_i[1:, :]
+    F_m_h = F_hll_i[0:-1, :]
     return F_p_h, F_m_h
+
 

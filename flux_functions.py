@@ -59,7 +59,7 @@ def direct_wave_speed(U, gamma):
     S_R = jnp.maximum(u_l + a_l, u_r + a_r)
     return S_L, S_R
 
-def hll(U, gamma, S_L, S_R):
+def hll(U, gamma):
     # function that computes the hll fluxes
     rho, u, a, c, P = flow_properties(U, gamma)
     n_x = U.shape[0]
@@ -69,6 +69,9 @@ def hll(U, gamma, S_L, S_R):
     F = F.at[:, 0].set(rho * u)
     F = F.at[:, 1].set(rho * u**2 + (rho * a**2)/gamma)
     F = F.at[:, 2].set(rho * ((a**2 * u)/(gamma - 1) + 1/2 * u**3))
+
+    # computing wave speeds
+    S_L, S_R = direct_wave_speed(U, gamma)
 
     # creating F^(hll) arrays
     F_hll = (S_R * F[0:-2, :] - S_L * F[2:, :] + S_L * S_R * (U[2:, :] - U[0:-2, :]))/(S_R - S_L)

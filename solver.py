@@ -1,6 +1,6 @@
 import jax
 import jax.numpy as jnp
-from flux_functions import hll, steger_warming, flow_properties
+from flux_functions import flow_properties
 import plotting
 
 # setting default to double fpn

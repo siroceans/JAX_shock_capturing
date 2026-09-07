@@ -1,4 +1,5 @@
 import yaml
+from flux_functions import hll, steger_warming
 
 def get_parameters(): 
     with open('input_parameters.yaml', 'r') as file: 
@@ -19,7 +20,12 @@ def get_parameters():
     u_0 = config['u_initial']
     t_f = config['final_time']
     CFL = config['CFL']
-    flux_solver = config['flux_solver']
+
+    # choosing solver
+    if config['flux_solver'] == "steger_warming": 
+        flux_solver = steger_warming
+    elif config['flux_solver'] == "hll": 
+        flux_solver = hll
 
     animation_time = config['animation_time']
 

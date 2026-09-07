@@ -1,5 +1,5 @@
 import yaml
-from flux_functions import hll, steger_warming
+from flux_functions import hll, steger_warming, hllc
 
 def get_parameters(): 
     with open('input_parameters.yaml', 'r') as file: 
@@ -26,6 +26,8 @@ def get_parameters():
         flux_solver = steger_warming
     elif config['flux_solver'] == "hll": 
         flux_solver = hll
+    elif config['flux_solver'] == "hllc":
+        flux_solver = hllc
     else: 
         raise ValueError("Flux Solver selected is not supported.")
 

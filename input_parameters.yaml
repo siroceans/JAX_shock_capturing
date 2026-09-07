@@ -21,4 +21,5 @@ animation_time: 15            # in seconds
 
 # flux solver (uncomment whichever is wanted)
 #flux_solver: steger_warming
-flux_solver: hll
+#flux_solver: hll
+flux_solver: hllc

@@ -111,6 +111,7 @@ def hllc(U, gamma):
     rho, u, a, _, p = flow_properties(U, gamma)
     S_L, S_R = direct_wave_speed(U, gamma)
     S_s = s_star(U, gamma, S_L, S_R)
+    F = compute_F(n_x, rho, u, a, gamma)
 
     # computing U_*R and U_*L using (10.33)
     U_sR = jnp.zeros((n_x, 3))
@@ -128,5 +129,16 @@ def hllc(U, gamma):
     U_sL = U_sL.at[:, 2].set((U[0:-1, 2]/rho[0:-1] + (S_s - u[0:-1]) * 
                              (S_s + p[0:-1]/(rho[0:-1] * (S_L - u[0:-1])))) * factor_L)
 
-    # computing HLLC fluxes using (10.34)
-    F = jnp
+    # computing F_*L and F_*R
+    F_sL = F[0:-1, :] + S_L * (U_sL - U[0:-1, :])
+    F_sR = F[1:, :] + S_R * (U_sR - U[1:, :])
+
+    # computing HLLC fluxes (at cell interfaces) using (10.34)
+    F_hllc = jnp.wehre(S_L >= 0, F[0:-1, :], 0)
+    F_hllc = jnp.where((S_L <= 0) & (S_s >= 0), F_sL, F_hllc)
+    F_hllc = jnp.where((S_s <= 0) & (S_R >= 0), F_sR, F_hllc)
+    F_hllc = jnp.where(S_R <= 0, F[1:, :], F_hllc)
+
+    F_p_h = F_hllc[1:, :]
+    F_m_h = F_hllc[0:-1, :]
+    return F_p_h, F_m_h

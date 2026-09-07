@@ -12,7 +12,6 @@ def flow_properties(U, gamma):
     P = (gamma - 1) * (U[:, 2] - 1/2 * (U[:, 1])**2 / U[:, 0])
     a = jnp.sqrt(P * gamma / rho)
     c = jnp.abs(u) + a
-
     return rho, u, a, c, P
 
 
@@ -64,6 +63,15 @@ def direct_wave_speed(U, gamma):
     S_R = S_R.at[:, 0].set(jnp.maximum(u_l + a_l, u_r + a_r))
     return S_L, S_R
 
+def s_star(U, gamma, S_L, S_R): 
+    # S_* estimate using (10.58) from Toro's textbook
+    rho, u, _, _, p = flow_properties(U, gamma)
+
+    S_star = (p[1:] - p[0:-1] + rho[0:-1] * u[0:-1] * (S_L - u[0:-1]) - 
+              rho[1:] * u[1:] * (S_R - u[1:])) / (rho[0:-1] * (S_L - u[0:-1]) - 
+                                                  rho[1:] * (S_R - u[1:]))
+    return S_star
+
 def hll(U, gamma):
     # function that computes the hll fluxes
     rho, u, a, c, P = flow_properties(U, gamma)
@@ -93,5 +101,4 @@ def hll(U, gamma):
     F_p_h = F_hll_i[1:, :]
     F_m_h = F_hll_i[0:-1, :]
     return F_p_h, F_m_h
-
 

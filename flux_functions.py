@@ -72,16 +72,19 @@ def s_star(U, gamma, S_L, S_R):
                                                   rho[1:] * (S_R - u[1:]))
     return S_star
 
-def hll(U, gamma):
-    # function that computes the hll fluxes
-    rho, u, a, c, P = flow_properties(U, gamma)
-    n_x = U.shape[0]
-
-    # creating F array
+def compute_F(n_x, rho, u, a, gamma):
+     # creating F array
     F = jnp.zeros((n_x, 3))
     F = F.at[:, 0].set(rho * u)
     F = F.at[:, 1].set(rho * u**2 + (rho * a**2)/gamma)
     F = F.at[:, 2].set(rho * ((a**2 * u)/(gamma - 1) + 1/2 * u**3))
+    return F
+
+def hll(U, gamma):
+    # function that computes the hll fluxes
+    rho, u, a, c, P = flow_properties(U, gamma)
+    n_x = U.shape[0]
+    F = compute_F(n_x, rho, u, a, gamma)
 
     # computing L and R values
     S_L, S_R = direct_wave_speed(U, gamma)
@@ -102,3 +105,28 @@ def hll(U, gamma):
     F_m_h = F_hll_i[0:-1, :]
     return F_p_h, F_m_h
 
+def hllc(U, gamma):
+    # computing HLLC fluxes according to section 10.6.1 from Toro's textbook
+    n_x = U.shape[0]
+    rho, u, a, _, p = flow_properties(U, gamma)
+    S_L, S_R = direct_wave_speed(U, gamma)
+    S_s = s_star(U, gamma, S_L, S_R)
+
+    # computing U_*R and U_*L using (10.33)
+    U_sR = jnp.zeros((n_x, 3))
+    U_sL = jnp.zeros((n_x, 3))
+
+    factor_R = rho[1:] * (S_R - u[1:])/(S_R - S_s)
+    U_sR = U_sR.at[:, 0].set(factor_R)
+    U_sR = U_sR.at[:, 1].set(S_s * factor_R)
+    U_sR = U_sR.at[:, 2].set((U[1:, 2]/rho[1:] + (S_s - u[1:]) * 
+                             (S_s + p[1:]/(rho[1:] * (S_R - u[1:])))) * factor_R)
+
+    factor_L = rho[0:-1] * (S_L - u[0:-1])/(S_L - S_s)
+    U_sL = U_sL.at[:, 0].set(factor_L)
+    U_sL = U_sL.at[:, 1].set(S_s * factor_L)
+    U_sL = U_sL.at[:, 2].set((U[0:-1, 2]/rho[0:-1] + (S_s - u[0:-1]) * 
+                             (S_s + p[0:-1]/(rho[0:-1] * (S_L - u[0:-1])))) * factor_L)
+
+    # computing HLLC fluxes using (10.34)
+    F = jnp

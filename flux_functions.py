@@ -66,10 +66,10 @@ def direct_wave_speed(U, gamma):
 def s_star(U, gamma, S_L, S_R): 
     # S_* estimate using (10.58) from Toro's textbook
     rho, u, _, _, p = flow_properties(U, gamma)
-
-    S_star = (p[1:] - p[0:-1] + rho[0:-1] * u[0:-1] * (S_L - u[0:-1]) - 
-              rho[1:] * u[1:] * (S_R - u[1:])) / (rho[0:-1] * (S_L - u[0:-1]) - 
-                                                  rho[1:] * (S_R - u[1:]))
+    n_x = U.shape[0]
+    S_star = ((p[1:, None] - p[0:-1, None] + rho[0:-1, None] * u[0:-1, None] * (S_L - u[0:-1, None]) 
+              - rho[1:, None] * u[1:, None] * (S_R - u[1:,None])) / 
+              (rho[0:-1, None] * (S_L - u[0:-1, None]) - rho[1:, None] * (S_R - u[1:, None])))
     return S_star
 
 def compute_F(n_x, rho, u, a, gamma):
@@ -112,10 +112,13 @@ def hllc(U, gamma):
     S_L, S_R = direct_wave_speed(U, gamma)
     S_s = s_star(U, gamma, S_L, S_R)
     F = compute_F(n_x, rho, u, a, gamma)
+    S_L = jnp.squeeze(S_L)
+    S_R = jnp.squeeze(S_R)
+    S_s = jnp.squeeze(S_s)
 
     # computing U_*R and U_*L using (10.33)
-    U_sR = jnp.zeros((n_x, 3))
-    U_sL = jnp.zeros((n_x, 3))
+    U_sR = jnp.zeros((n_x - 1, 3))
+    U_sL = jnp.zeros((n_x - 1, 3))
 
     factor_R = rho[1:] * (S_R - u[1:])/(S_R - S_s)
     U_sR = U_sR.at[:, 0].set(factor_R)
@@ -130,14 +133,14 @@ def hllc(U, gamma):
                              (S_s + p[0:-1]/(rho[0:-1] * (S_L - u[0:-1])))) * factor_L)
 
     # computing F_*L and F_*R
-    F_sL = F[0:-1, :] + S_L * (U_sL - U[0:-1, :])
-    F_sR = F[1:, :] + S_R * (U_sR - U[1:, :])
+    F_sL = F[0:-1, :] + S_L[:, None] * (U_sL[:, :] - U[0:-1, :])
+    F_sR = F[1:, :] + S_R[:, None] * (U_sR[:, :] - U[1:, :])
 
     # computing HLLC fluxes (at cell interfaces) using (10.34)
-    F_hllc = jnp.wehre(S_L >= 0, F[0:-1, :], 0)
-    F_hllc = jnp.where((S_L <= 0) & (S_s >= 0), F_sL, F_hllc)
-    F_hllc = jnp.where((S_s <= 0) & (S_R >= 0), F_sR, F_hllc)
-    F_hllc = jnp.where(S_R <= 0, F[1:, :], F_hllc)
+    F_hllc = jnp.where(S_L[:, None] >= 0, F[0:-1, :], 0)
+    F_hllc = jnp.where((S_L[:, None] <= 0) & (S_s[:, None] >= 0), F_sL, F_hllc)
+    F_hllc = jnp.where((S_s[:, None] <= 0) & (S_R[:, None] >= 0), F_sR, F_hllc)
+    F_hllc = jnp.where(S_R[:, None] <= 0, F[1:, :], F_hllc)
 
     F_p_h = F_hllc[1:, :]
     F_m_h = F_hllc[0:-1, :]

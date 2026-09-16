@@ -3,7 +3,7 @@
 geometry:
   L: 1                        # Length of the tube
   discontinuity_x: 0.5        # Location of discontinuity
-  cell_number: 500            # Number of cells
+  cell_number: 100            # Number of cells
 
 left_state: 
   rho: 1

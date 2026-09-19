@@ -2,3 +2,5 @@ jax_cs.md
 .venv/
 __pycache__
 md_cs.png
+
+MNIST/

@@ -6,6 +6,7 @@ jax.config.update("jax_enable_x64", True)
 
 # module containing all of the functions used for the flux calculations to solve shock tube problem
 
+@jax.jit
 def flow_properties(U, gamma):
     rho = U[:, 0]
     u = U[:, 1] / U[:, 0]
@@ -14,7 +15,7 @@ def flow_properties(U, gamma):
     c = jnp.abs(u) + a
     return rho, u, a, c, P
 
-
+@jax.jit
 def steger_warming(U, gamma):
     n_x = U.shape[0]
     rho, u, a, *_ = flow_properties(U, gamma)
@@ -42,6 +43,7 @@ def steger_warming(U, gamma):
     F_n_h = F_p[0:-2, :] + F_n[1:-1, :] #F_i-1/2
     return F_p_h, F_n_h
 
+@jax.jit
 def direct_wave_speed(U, gamma):
     # direct wave speed estimate using section 10.5.1 from Toro's textbook as a reference
     # using 10.38 as reference!
@@ -63,28 +65,31 @@ def direct_wave_speed(U, gamma):
     S_R = S_R.at[:, 0].set(jnp.maximum(u_l + a_l, u_r + a_r))
     return S_L, S_R
 
+@jax.jit
 def s_star(U, gamma, S_L, S_R): 
     # S_* estimate using (10.58) from Toro's textbook
     rho, u, _, _, p = flow_properties(U, gamma)
-    n_x = U.shape[0]
     S_star = ((p[1:, None] - p[0:-1, None] + rho[0:-1, None] * u[0:-1, None] * (S_L - u[0:-1, None]) 
               - rho[1:, None] * u[1:, None] * (S_R - u[1:,None])) / 
               (rho[0:-1, None] * (S_L - u[0:-1, None]) - rho[1:, None] * (S_R - u[1:, None])))
     return S_star
 
-def compute_F(n_x, rho, u, a, gamma):
+@jax.jit
+def compute_F(rho, u, a, gamma):
      # creating F array
+    n_x = rho.shape[0]
     F = jnp.zeros((n_x, 3))
     F = F.at[:, 0].set(rho * u)
     F = F.at[:, 1].set(rho * u**2 + (rho * a**2)/gamma)
     F = F.at[:, 2].set(rho * ((a**2 * u)/(gamma - 1) + 1/2 * u**3))
     return F
 
+@jax.jit
 def hll(U, gamma):
     # function that computes the hll fluxes
-    rho, u, a, c, P = flow_properties(U, gamma)
     n_x = U.shape[0]
-    F = compute_F(n_x, rho, u, a, gamma)
+    rho, u, a, c, P = flow_properties(U, gamma)
+    F = compute_F(rho, u, a, gamma)
 
     # computing L and R values
     S_L, S_R = direct_wave_speed(U, gamma)
@@ -105,13 +110,14 @@ def hll(U, gamma):
     F_m_h = F_hll_i[0:-1, :]
     return F_p_h, F_m_h
 
+@jax.jit
 def hllc(U, gamma):
     # computing HLLC fluxes according to section 10.6.1 from Toro's textbook
     n_x = U.shape[0]
     rho, u, a, _, p = flow_properties(U, gamma)
     S_L, S_R = direct_wave_speed(U, gamma)
     S_s = s_star(U, gamma, S_L, S_R)
-    F = compute_F(n_x, rho, u, a, gamma)
+    F = compute_F(rho, u, a, gamma)
     S_L = jnp.squeeze(S_L)
     S_R = jnp.squeeze(S_R)
     S_s = jnp.squeeze(S_s)

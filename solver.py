@@ -32,12 +32,19 @@ def initializeField(rho_right, rho_left, P_right, P_left, x_discontinuity, n_x, 
 
 def shockTubeSolver(L, x_d, n_x, rho_right, rho_left, p_right, p_left, gamma, u_0, t_f, CFL,
                      flux_solver):
+    @jax.jit
+    def time_iteration(U, gamma, dt, dx): 
+        F_p_h, F_n_h = flux_solver(U, gamma)
+
+        # ignoring boundary cells... (look at BCs!!!)
+        U = U.at[1:-1, :].set(U[1:-1, :] - dt/dx  * (F_p_h - F_n_h))
+
+        # computing current flow parameters and saving states
+        rho, u, _, c, P = flow_properties(U, gamma)
+        return U, rho, u, c, P
+
     # initialize field
     U, c, dx = initializeField(rho_right,rho_left, p_right, p_left, x_d, n_x, gamma, L, u_0)
-
-    #-------------------------
-    # time marching loop!!!
-    #-------------------------
 
     # using CFL to calculate dt and initializing time loop
     dt = CFL*  dx / jnp.max(c)
@@ -51,13 +58,9 @@ def shockTubeSolver(L, x_d, n_x, rho_right, rho_left, p_right, p_left, gamma, u_
 
     while t < t_f:
         t = t + dt
-        F_p_h, F_n_h = flux_solver(U, gamma)
+        U, rho, u, c, P = time_iteration(U, gamma, dt, dx)
 
-        # ignoring boundary cells... (look at BCs!!!)
-        U = U.at[1:-1, :].set(U[1:-1, :] - dt/dx  * (F_p_h - F_n_h))
-
-        # computing current flow parameters and saving states
-        rho, u, _, c, P = flow_properties(U, gamma)
+        # appending to state arrays
         u_states.append(u)
         rho_states.append(rho)
         P_states.append(P)

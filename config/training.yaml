@@ -1,0 +1,5 @@
+# configuration parameters for training and data for neural flux module
+
+# data generation
+data_generation: 
+  resolution: 1000    # resolution for training data

@@ -1,0 +1,17 @@
+# initial and geometry parameters for sod's shock tube solver
+
+geometry:
+  L: 1                        # Length of the tube
+  discontinuity_x: 0.5        # Location of discontinuity
+  cell_number: 100 # Number of cells
+
+left_state: 
+  rho: 1
+  P: 1
+
+right_state: 
+  rho: 0.125
+  P: 0.1
+
+gamma: 1.4                    # specific heat ratio of the fluid
+u_initial: 0                  # initial velocity of the flowfield

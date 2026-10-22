@@ -1,0 +1,8 @@
+# configuration parameters for numerical solver
+final_time: 0.2               # final time
+CFL: 0.5                      # CFL condition value
+
+# flux solver (uncomment whichever is wanted)
+#flux_solver: steger_warming
+#flux_solver: hll
+flux_solver: hllc

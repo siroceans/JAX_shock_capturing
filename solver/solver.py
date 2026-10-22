@@ -1,7 +1,6 @@
 import jax
 import jax.numpy as jnp
-from flux_functions import flow_properties
-import plotting
+from solver.flux_functions import flow_properties
 
 # setting default to double fpn
 jax.config.update("jax_enable_x64", True)

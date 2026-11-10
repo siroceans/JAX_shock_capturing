@@ -1,6 +1,8 @@
 # configuration parameters for numerical solver
+initial_time: 0               # initial time
 final_time: 0.2               # final time
 CFL: 0.5                      # CFL condition value
+dt: 0                        # set to 0 for variable dt based on cfl
 
 # flux solver (uncomment whichever is wanted)
 #flux_solver: steger_warming

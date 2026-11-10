@@ -31,6 +31,8 @@ def get_solver_config():
         config = yaml.safe_load(file)
 
     # renaming variables as expected...
+    dt = config['dt']
+    to = config['initial_time']
     t_f = config['final_time']
     CFL = config['CFL']
 
@@ -64,3 +66,4 @@ def get_plotting_config():
     #plotting_parameters = {k: v for k, v in locals().items()}
     return animation_time 
 
+def get_training_config():

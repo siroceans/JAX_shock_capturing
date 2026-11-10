@@ -4,3 +4,4 @@ __pycache__
 md_cs.png
 
 MNIST/
+neural_flux/training_data/

@@ -7,7 +7,6 @@ jax.config.update("jax_enable_x64", True)
 
 ## Solving Sod's shock tube problem using different flux approaches in FVM
 # Jorge Luis Mares Zamora
-# Last worked on:
 
 def initializeField(rho_right, rho_left, P_right, P_left, x_discontinuity, n_x, gamma, L, u_0):
     dx = L / n_x # remember that nx is the no. of cells, not the no. of edges!!
@@ -30,7 +29,7 @@ def initializeField(rho_right, rho_left, P_right, P_left, x_discontinuity, n_x, 
 
 
 def shockTubeSolver(L, x_d, n_x, rho_right, rho_left, p_right, p_left, gamma, u_0, t_f, CFL,
-                     flux_solver):
+                     flux_solver, dt, to):
     @jax.jit
     def time_iteration(U, gamma, dt, dx): 
         F_p_h, F_n_h = flux_solver(U, gamma)
@@ -45,9 +44,17 @@ def shockTubeSolver(L, x_d, n_x, rho_right, rho_left, p_right, p_left, gamma, u_
     # initialize field
     U, c, dx = initializeField(rho_right,rho_left, p_right, p_left, x_d, n_x, gamma, L, u_0)
 
-    # using CFL to calculate dt and initializing time loop
-    dt = CFL*  dx / jnp.max(c)
-    t = 0
+    # checking if dt needs to be computed
+    variable = False
+    if dt == 0:
+        variable = True
+        dt = CFL * dx / jnp.max(c)
+
+    # setting initial time
+    t = to
+
+    # checking what the max speed is
+    max_c = jnp.max(c)
 
     # initializing and filling in initial states TODO: this surely can be optimized?
     rho, u, _, c, P = flow_properties(U, gamma)
@@ -65,9 +72,24 @@ def shockTubeSolver(L, x_d, n_x, rho_right, rho_left, p_right, p_left, gamma, u_
         P_states.append(P)
 
         # recomputing dt 
-        dt = CFL * dx / jnp.max(c)
+        if variable:
+            dt = CFL * dx / jnp.max(c)
+
+        ## saving max c value
+        #if jnp.max(c) > max_c:
+            #max_c = jnp.max(c)
+        #print(jnp.max(c))
 
         # we want to stop EXACTLY at t_f, so we will limit the last iteration
         if (t + dt) > t_f: 
             dt = t_f - t
     return jnp.stack(u_states), jnp.stack(rho_states), jnp.stack(P_states)
+
+@jax.jit(static_argnames=['flux_solver'])
+def time_step(U, gamma, dt, dx, flux_solver):
+    F_p_h, F_n_h = flux_solver(U, gamma)
+
+    # ignoring boundary cells... (look at BCs!!!)
+    U = U.at[1:-1, :].set(U[1:-1, :] - dt/dx  * (F_p_h - F_n_h))
+
+    return U

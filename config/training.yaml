@@ -1,5 +1,27 @@
 # configuration parameters for training and data for neural flux module
 
 # data generation
-data_generation: 
-  resolution: 1000    # resolution for training data
+training_data_geometry: 
+  L: 1                          # Length of the tube
+  discontinuity_x: 0.5          # Location of discontinuity
+  cell_number: 1000             # Number of cells
+
+left_state: 
+  rho: 1
+  P: 1
+
+right_state: 
+  rho: 0.125
+  P: 0.1
+
+gamma: 1.4                        # specific heat ratio of the fluid
+u_initial: 0                      # initial velocity of the flowfield
+  
+training_solver_config:
+  initial_time: 0
+  final_time: 0.2
+  dt: 0.0002
+  CFL: 0.5
+  flux_solver: hllc
+  save_every: 1                     # 1 to solve every time step
+  directory: 'training_data_1000'   # directory to save training data

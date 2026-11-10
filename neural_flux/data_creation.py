@@ -8,14 +8,14 @@ from solver.flux_functions import flow_properties
 jax.config.update("jax_enable_x64", True)
 
 def generate_data(L, x_d, n_x, rho_right, rho_left, p_right, p_left, gamma, u_0, t_f, CFL,
-                     flux_solver, dt, to, directory):
+                     flux_solver, dt, t_o, directory):
 
     # initialize field and check no of iterations
     U, _, dx = initializeField(rho_right, rho_left, p_right, p_left, x_d, n_x, gamma, L, u_0)
-    t = to
-    iterations = int(round((t_f - to) / dt))
+    t = t_o
+    iterations = int(round((t_f - t_o) / dt))
     width = len(str(iterations))
-    time_array = to + jnp.arange(iterations + 1) * dt
+    time_array = t_o + jnp.arange(iterations + 1) * dt
 
     # check if destination directory exists, if not, then create
     os.makedirs(f'./neural_flux/training_data/{directory}', exist_ok=True)

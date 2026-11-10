@@ -66,4 +66,41 @@ def get_plotting_config():
     #plotting_parameters = {k: v for k, v in locals().items()}
     return animation_time 
 
-def get_training_config():
+def get_training_data_config():
+    with open('config/training.yaml', 'r') as file: 
+        config = yaml.safe_load(file)
+
+    L = config['L']
+    x_d = config['discontinuity_x']
+    n_x = config['cell_number']
+    rho_right = config['right_state']['rho']
+    rho_left = config['left_state']['rho']
+    p_right = config['right_state']['P']
+    p_left = config['left_state']['P']
+    gamma = config['gamma']
+    u_0 = config['u_0']
+    t_f = config['training_solver_config']['final_time']
+    CFL = config['training_solver_config']['CFL']
+    dt = config['training_solver_config']['dt']
+    t_o = config['training_solver_config']['initial_time']
+    directory = config['training_solver_config']['directory']
+
+    # choosing solver
+    if config['flux_solver'] == "steger_warming": 
+        flux_solver = steger_warming
+    elif config['flux_solver'] == "hll": 
+        flux_solver = hll
+    elif config['flux_solver'] == "hllc":
+        flux_solver = hllc
+    else: 
+        raise ValueError("Flux Solver selected is not supported.")
+
+    # getting rid of intermediate variables in scope
+    del config
+    del file
+
+    training_data_parameters = {k: v for k, v in locals().items()}
+    return training_data_parameters
+
+
+
